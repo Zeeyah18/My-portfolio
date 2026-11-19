@@ -1,4 +1,4 @@
-import { getSimpleIcon } from "@/lib/icons";
+import { getSimpleIconSlug } from "@/lib/icons";
 import { Skill } from "@/types/portfolio";
 
 interface SkillsSectionProps {
@@ -23,15 +23,17 @@ export function SkillsSection({ skills }: SkillsSectionProps) {
         </div>
         <div className="skills-grid">
           {skills.map((skill) => {
-            const icon = getSimpleIcon(skill.iconKey);
+            const slug = getSimpleIconSlug(skill.iconKey);
+
             return (
               <div className="skill-item" key={skill.id || skill.name}>
                 <span className="skill-symbol" aria-hidden="true">
-                  {icon && (
-                    <svg viewBox="0 0 24 24" role="presentation">
-                      <path d={icon.path} />
-                    </svg>
-                  )}
+                  <img
+                    src={`https://cdn.simpleicons.org/${slug}`}
+                    alt=""
+                    width={28}
+                    height={28}
+                  />
                 </span>
                 <span className="skill-name">{skill.name}</span>
               </div>

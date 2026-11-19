@@ -7,6 +7,7 @@ import { ProjectsSection } from "@/components/sections/ProjectsSection";
 import { ExperienceSection } from "@/components/sections/ExperienceSection";
 import { CertificatesSection } from "@/components/sections/CertificatesSection";
 import { ContactFooter } from "@/components/sections/ContactFooter";
+import { ScrollReveal } from "@/components/ScrollReveal";
 import { getPortfolioData } from "@/lib/portfolio-service";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,7 @@ export default async function Home() {
 
   return (
     <main className="portfolio-page">
+      <ScrollReveal />
       <Header />
       <HeroSection hero={data.hero} resumeUrl={data.resume?.url} />
       <IntroBand

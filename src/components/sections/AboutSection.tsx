@@ -19,7 +19,7 @@ export function AboutSection({ about }: AboutSectionProps) {
         <section className="section-wrap content-section about-section" id="about">
             <div className="section-heading">
                 <p className="eyebrow">A LITTLE ABOUT ME</p>
-                <span className="section-number">01 — 06</span>
+               
             </div>
             <div className="about-grid">
                 <div className="about-heading-col">

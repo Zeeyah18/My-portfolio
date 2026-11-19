@@ -2,19 +2,29 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Wrench, Plus, Trash2, Edit2, Loader2, CheckCircle2, ArrowLeft, X, Save } from "lucide-react";
+import { Plus, Trash2, Edit2, Loader2, CheckCircle2, ArrowLeft, X, Save, Search } from "lucide-react";
 import { Skill } from "@/types/portfolio";
+import { getSimpleIconSlug } from "@/lib/icons";
 
-const POPULAR_ICONS = [
-  { key: "siReact", label: "React" },
-  { key: "siTypescript", label: "TypeScript" },
-  { key: "siJavascript", label: "JavaScript" },
-  { key: "siHtml5", label: "HTML5" },
-  { key: "siCss", label: "CSS3" },
-  { key: "siNodedotjs", label: "Node.js" },
-  { key: "siPython", label: "Python" },
-  { key: "siGit", label: "Git" },
-];
+type IconChoice = {
+  title: string;
+  slug: string;
+  hex: string;
+};
+
+function iconSrc(slug: string, hex?: string) {
+  const color = hex && readableHex(hex) ? hex : "111111";
+  return `https://cdn.simpleicons.org/${encodeURIComponent(slug)}/${color}`;
+}
+
+function readableHex(hex: string) {
+  const value = Number.parseInt(hex, 16);
+  if (Number.isNaN(value)) return false;
+  const red = (value >> 16) & 255;
+  const green = (value >> 8) & 255;
+  const blue = value & 255;
+  return red * 0.299 + green * 0.587 + blue * 0.114 < 210;
+}
 
 export default function AdminSkillsPage() {
   const [skills, setSkills] = useState<Skill[]>([]);
@@ -26,7 +36,11 @@ export default function AdminSkillsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [name, setName] = useState("");
-  const [iconKey, setIconKey] = useState("siReact");
+  const [iconKey, setIconKey] = useState("react");
+  const [selectedIcon, setSelectedIcon] = useState<IconChoice | null>(null);
+  const [iconQuery, setIconQuery] = useState("");
+  const [iconChoices, setIconChoices] = useState<IconChoice[]>([]);
+  const [iconsLoading, setIconsLoading] = useState(false);
   const [displayOrder, setDisplayOrder] = useState<number>(1);
   const [submitting, setSubmitting] = useState(false);
 
@@ -46,22 +60,64 @@ export default function AdminSkillsPage() {
     loadSkills();
   }, []);
 
+  useEffect(() => {
+    if (!showForm) return;
+    const handle = window.setTimeout(async () => {
+      setIconsLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (iconQuery.trim()) params.set("q", iconQuery.trim());
+        const res = await fetch(`/api/icons?${params.toString()}`);
+        const data = await res.json();
+        setIconChoices(Array.isArray(data) ? data : []);
+      } catch {
+        setIconChoices([]);
+      } finally {
+        setIconsLoading(false);
+      }
+    }, 200);
+    return () => window.clearTimeout(handle);
+  }, [iconQuery, showForm]);
+
+  useEffect(() => {
+    if (selectedIcon?.slug === iconKey || iconChoices.length === 0) return;
+    const match = iconChoices.find((icon) => icon.slug === iconKey);
+    if (match) setSelectedIcon(match);
+  }, [iconChoices, iconKey, selectedIcon]);
+
+  const chooseIcon = (icon: IconChoice, fillName = false) => {
+    setIconKey(icon.slug);
+    setSelectedIcon(icon);
+    if (fillName && !name.trim()) setName(icon.title);
+  };
+
   const openAddModal = () => {
     setEditingId(null);
     setName("");
-    setIconKey("siReact");
+    setIconKey("react");
+    setSelectedIcon(null);
+    setIconQuery("");
     setDisplayOrder(skills.length + 1);
     setShowForm(true);
     setError("");
   };
 
   const openEditModal = (skill: Skill) => {
+    const slug = getSimpleIconSlug(skill.iconKey);
     setEditingId(skill.id);
     setName(skill.name);
-    setIconKey(skill.iconKey);
+    setIconKey(slug);
+    setSelectedIcon(null);
+    setIconQuery("");
     setDisplayOrder(skill.displayOrder);
     setShowForm(true);
     setError("");
+    fetch(`/api/icons?slug=${encodeURIComponent(slug)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data[0]) setSelectedIcon(data[0]);
+      })
+      .catch(() => undefined);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -178,7 +234,7 @@ export default function AdminSkillsPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="grid sm:grid-cols-3 gap-4 items-end">
-            <div>
+            <div className="sm:col-span-2">
               <label className="block text-xs font-semibold uppercase text-foreground mb-1.5">
                 Skill Name
               </label>
@@ -194,23 +250,6 @@ export default function AdminSkillsPage() {
 
             <div>
               <label className="block text-xs font-semibold uppercase text-foreground mb-1.5">
-                Icon Identifier
-              </label>
-              <select
-                value={iconKey}
-                onChange={(e) => setIconKey(e.target.value)}
-                className="w-full px-3.5 py-2 text-sm bg-background border border-border rounded-md focus:border-primary focus:outline-none"
-              >
-                {POPULAR_ICONS.map((icon) => (
-                  <option key={icon.key} value={icon.key}>
-                    {icon.label} ({icon.key})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase text-foreground mb-1.5">
                 Display Order
               </label>
               <input
@@ -220,6 +259,89 @@ export default function AdminSkillsPage() {
                 onChange={(e) => setDisplayOrder(Number(e.target.value))}
                 className="w-full px-3.5 py-2 text-sm bg-background border border-border rounded-md focus:border-primary focus:outline-none"
               />
+            </div>
+
+            <div className="sm:col-span-3">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <label className="block text-xs font-semibold uppercase text-foreground">
+                  Icon
+                </label>
+                <a
+                  href="https://simpleicons.org/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[11px] font-semibold text-primary hover:underline"
+                >
+                  Browse Simple Icons
+                </a>
+              </div>
+
+              <div className="mb-3 flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-border bg-white">
+                  {iconKey ? (
+                    <img
+                      src={iconSrc(iconKey, selectedIcon?.hex)}
+                      alt=""
+                      width={26}
+                      height={26}
+                      className="h-6 w-6 object-contain"
+                    />
+                  ) : null}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {selectedIcon?.title || "Choose an icon"}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">{iconKey}</p>
+                </div>
+              </div>
+
+              <div className="relative mb-3">
+                <Search size={14} className="pointer-events-none absolute left-3 top-2.5 text-muted-foreground" />
+                <input
+                  type="search"
+                  value={iconQuery}
+                  onChange={(e) => setIconQuery(e.target.value)}
+                  placeholder="Search any icon — Figma, Docker, Java, Prisma..."
+                  className="w-full py-2 pl-9 pr-3 text-sm bg-background border border-border rounded-md focus:border-primary focus:outline-none"
+                />
+              </div>
+
+              <div className="grid max-h-64 grid-cols-2 gap-2 overflow-y-auto rounded-lg border border-border bg-muted/20 p-2 sm:grid-cols-3 md:grid-cols-4">
+                {iconsLoading && iconChoices.length === 0 ? (
+                  <p className="col-span-full px-2 py-6 text-center text-xs text-muted-foreground">Searching icons...</p>
+                ) : iconChoices.length === 0 ? (
+                  <p className="col-span-full px-2 py-6 text-center text-xs text-muted-foreground">
+                    No icons match that search.
+                  </p>
+                ) : (
+                  iconChoices.map((icon) => {
+                    const selected = icon.slug === iconKey;
+                    return (
+                      <button
+                        key={icon.slug}
+                        type="button"
+                        onClick={() => chooseIcon(icon, true)}
+                        aria-pressed={selected}
+                        className={`flex items-center gap-2 rounded-md border px-2 py-2 text-left transition-colors cursor-pointer ${
+                          selected
+                            ? "border-primary bg-primary/10"
+                            : "border-transparent bg-background hover:border-border"
+                        }`}
+                      >
+                        <img
+                          src={iconSrc(icon.slug, icon.hex)}
+                          alt=""
+                          width={20}
+                          height={20}
+                          className="h-5 w-5 shrink-0 object-contain"
+                        />
+                        <span className="truncate text-xs font-medium text-foreground">{icon.title}</span>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
             </div>
 
             <div className="sm:col-span-3 flex justify-end gap-2 pt-2">
@@ -263,8 +385,14 @@ export default function AdminSkillsPage() {
                 className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs uppercase">
-                    {skill.name.slice(0, 2)}
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-white">
+                    <img
+                      src={iconSrc(getSimpleIconSlug(skill.iconKey))}
+                      alt=""
+                      width={22}
+                      height={22}
+                      className="h-5 w-5 object-contain"
+                    />
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-foreground">{skill.name}</h3>
