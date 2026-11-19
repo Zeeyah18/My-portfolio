@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "No resume has been uploaded yet." }, { status: 404 });
     }
 
-    return new NextResponse(file.bytes, {
+    return new NextResponse(file.bytes as unknown as BodyInit, {
       headers: {
         "Content-Type": file.contentType || "application/pdf",
         "Content-Disposition": `inline; filename="${file.filename.replace(/"/g, "")}"`,
