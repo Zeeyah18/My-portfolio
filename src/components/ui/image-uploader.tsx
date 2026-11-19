@@ -147,8 +147,8 @@ export function ImageUploader({
         </div>
       )}
 
-      {/* Direct text input (shown if toggled or if direct URL needs editing) */}
-      {(showDirectInput || !value) && (
+      {/* Direct text input (shown if toggled, if empty, or if an upload error occurred) */}
+      {(showDirectInput || !value || Boolean(uploadError)) && (
         <div>
           <input
             type="text"

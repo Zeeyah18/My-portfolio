@@ -64,7 +64,15 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error uploading to Cloudinary:", error);
-    const message = error instanceof Error ? error.message : "Failed to upload file to Cloudinary";
+    let message = "Failed to upload file to Cloudinary";
+    if (error && typeof error === "object" && "message" in error) {
+      const errMsg = String((error as { message: unknown }).message);
+      if (errMsg.includes("cloud_name") || errMsg.includes("Must supply cloud_name")) {
+        message = `Cloudinary authentication error: Invalid Cloud Name "${process.env.CLOUDINARY_CLOUD_NAME}". Please verify CLOUDINARY_CLOUD_NAME in your .env file matches your Cloudinary Console dashboard.`;
+      } else {
+        message = errMsg;
+      }
+    }
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
