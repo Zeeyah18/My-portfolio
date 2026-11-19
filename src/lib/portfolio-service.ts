@@ -85,7 +85,7 @@ export const defaultPortfolioData: PortfolioData = {
             aboutCertificate:
                 "Mastered responsive page layouts, DOM manipulation, Git version control, and core web accessibility principles.",
             year: "2025",
-            imageUrl: "/assets/portfolio-portrait.png",
+            imageUrl: "",
             iconName: "Award",
             displayOrder: 1,
             isActive: true,
@@ -96,7 +96,7 @@ export const defaultPortfolioData: PortfolioData = {
             aboutCertificate:
                 "Comprehensive 300-hour certification covering modern CSS Grid, Flexbox, media queries, and semantic HTML5 structuring.",
             year: "2025",
-            imageUrl: "/assets/portfolio-portrait.png",
+            imageUrl: "",
             iconName: "Braces",
             displayOrder: 2,
             isActive: true,
@@ -107,7 +107,7 @@ export const defaultPortfolioData: PortfolioData = {
             aboutCertificate:
                 "Covered design thinking, empathy mapping, user personas, low-to-high fidelity wireframing, and usability testing.",
             year: "2024",
-            imageUrl: "/assets/portfolio-portrait.png",
+            imageUrl: "",
             iconName: "Gem",
             displayOrder: 3,
             isActive: true,

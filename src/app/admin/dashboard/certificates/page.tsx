@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Award, Plus, Trash2, Edit2, Loader2, CheckCircle2, ArrowLeft, X, Save } from "lucide-react";
+import Image from "next/image";
+import { Award, Plus, Trash2, Edit2, Loader2, CheckCircle2, ArrowLeft, X, Save, ExternalLink, ImageIcon } from "lucide-react";
 import { Certificate } from "@/types/portfolio";
 import { ImageUploader } from "@/components/ui/image-uploader";
 
@@ -43,7 +44,7 @@ export default function AdminCertificatesPage() {
         setTitle("");
         setAboutCertificate("");
         setYear("2025");
-        setImageUrl("/assets/portfolio-portrait.png");
+        setImageUrl("");
         setIconName("Award");
         setDisplayOrder(certificates.length + 1);
         setShowForm(true);
@@ -55,7 +56,13 @@ export default function AdminCertificatesPage() {
         setTitle(cert.title);
         setAboutCertificate(cert.aboutCertificate || "");
         setYear(cert.year);
-        setImageUrl(cert.imageUrl || "/assets/portfolio-portrait.png");
+        const cleanImageUrl =
+            cert.imageUrl &&
+            !cert.imageUrl.includes("portfolio-portrait") &&
+            !cert.imageUrl.includes("abigail-portrait")
+                ? cert.imageUrl
+                : "";
+        setImageUrl(cleanImageUrl);
         setIconName(cert.iconName || "Award");
         setDisplayOrder(cert.displayOrder);
         setShowForm(true);
@@ -310,6 +317,34 @@ export default function AdminCertificatesPage() {
                                     </button>
                                 </div>
                             </div>
+
+                            {/* Certificate Image Preview */}
+                            {cert.imageUrl &&
+                            !cert.imageUrl.includes("portfolio-portrait") &&
+                            !cert.imageUrl.includes("abigail-portrait") ? (
+                                <div className="mt-3 mb-3 relative aspect-[16/9] w-full overflow-hidden rounded-lg border border-border bg-muted/30 group">
+                                    <Image
+                                        src={cert.imageUrl}
+                                        alt={cert.title}
+                                        fill
+                                        className="object-cover"
+                                    />
+                                    <a
+                                        href={cert.imageUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="absolute bottom-2 right-2 px-2.5 py-1 text-[11px] font-semibold bg-black/75 text-white rounded backdrop-blur-xs flex items-center gap-1 hover:bg-black/90 transition-colors shadow-xs"
+                                    >
+                                        <span>View Full Image</span>
+                                        <ExternalLink size={11} />
+                                    </a>
+                                </div>
+                            ) : (
+                                <div className="mt-3 mb-3 p-3 rounded-lg border border-dashed border-border/80 text-center text-xs text-muted-foreground flex items-center justify-center gap-2 bg-muted/20">
+                                    <ImageIcon size={14} className="opacity-60" />
+                                    <span>No certificate badge/image uploaded</span>
+                                </div>
+                            )}
 
                             <p className="text-xs text-muted-foreground line-clamp-3 mt-2">{cert.aboutCertificate}</p>
                         </div>

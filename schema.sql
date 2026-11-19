@@ -197,21 +197,21 @@ VALUES
         1,
         'Bloom & Balance',
         'A calm, accessible habit tracker designed to make everyday wellbeing feel a little more possible.',
-        '/assets/portfolio-portrait.png',
+        NULL,
         1
     ),
     (
         2,
         'Campus Connect',
         'A welcoming home for student clubs, campus events, and the connections that make a university feel smaller.',
-        '/assets/portfolio-portrait.png',
+        NULL,
         2
     ),
     (
         3,
         'Greenhouse Notes',
         'A little plant-care dashboard that turns watering schedules into an easy, joyful routine.',
-        '/assets/portfolio-portrait.png',
+        NULL,
         3
     )
 ON CONFLICT (id) DO NOTHING;
@@ -225,7 +225,7 @@ VALUES
         'Introduction to Front-End Development',
         'Mastered responsive page layouts, DOM manipulation, Git version control, and core web accessibility principles.',
         '2025',
-        '/assets/portfolio-portrait.png',
+        NULL,
         'Award',
         1
     ),
@@ -234,7 +234,7 @@ VALUES
         'Responsive Web Design',
         'Comprehensive 300-hour certification covering modern CSS Grid, Flexbox, media queries, and semantic HTML5 structuring.',
         '2025',
-        '/assets/portfolio-portrait.png',
+        NULL,
         'Braces',
         2
     ),
@@ -243,7 +243,7 @@ VALUES
         'Foundations of User Experience (UX) Design',
         'Covered design thinking, empathy mapping, user personas, low-to-high fidelity wireframing, and usability testing.',
         '2024',
-        '/assets/portfolio-portrait.png',
+        NULL,
         'Sparkles',
         3
     )

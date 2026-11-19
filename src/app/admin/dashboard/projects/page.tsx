@@ -55,7 +55,13 @@ export default function AdminProjectsPage() {
         setEditingId(proj.id);
         setName(proj.name);
         setDescription(proj.description);
-        setImageUrl(proj.imageUrl || "");
+        const cleanImageUrl =
+            proj.imageUrl &&
+            !proj.imageUrl.includes("portfolio-portrait") &&
+            !proj.imageUrl.includes("abigail-portrait")
+                ? proj.imageUrl
+                : "";
+        setImageUrl(cleanImageUrl);
         setLiveUrl(proj.liveUrl || "");
         setGithubUrl(proj.githubUrl || "");
         setDisplayOrder(proj.displayOrder);
@@ -312,7 +318,14 @@ export default function AdminProjectsPage() {
                         </div>
 
                         <div className="mt-4 pt-3 border-t border-border/60 text-[11px] text-muted-foreground flex items-center justify-between">
-                            <span>Image: {proj.imageUrl ? proj.imageUrl.slice(0, 30) + "..." : "Default"}</span>
+                            <span>
+                                Image:{" "}
+                                {proj.imageUrl &&
+                                !proj.imageUrl.includes("portfolio-portrait") &&
+                                !proj.imageUrl.includes("abigail-portrait")
+                                    ? proj.imageUrl.slice(0, 30) + "..."
+                                    : "None (Card Style)"}
+                            </span>
                             <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 font-semibold">Active</span>
                         </div>
                     </div>

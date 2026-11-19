@@ -145,16 +145,16 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO projects (name, description, image_url, display_order)
 VALUES
-    ('Bloom & Balance', 'A calm, accessible habit tracker designed to make everyday wellbeing feel a little more possible.', '/assets/portfolio-portrait.png', 1),
-    ('Campus Connect', 'A welcoming home for student clubs, campus events, and the connections that make a university feel smaller.', '/assets/portfolio-portrait.png', 2),
-    ('Greenhouse Notes', 'A little plant-care dashboard that turns watering schedules into an easy, joyful routine.', '/assets/portfolio-portrait.png', 3)
+    ('Bloom & Balance', 'A calm, accessible habit tracker designed to make everyday wellbeing feel a little more possible.', NULL, 1),
+    ('Campus Connect', 'A welcoming home for student clubs, campus events, and the connections that make a university feel smaller.', NULL, 2),
+    ('Greenhouse Notes', 'A little plant-care dashboard that turns watering schedules into an easy, joyful routine.', NULL, 3)
 ON CONFLICT DO NOTHING;
 
 INSERT INTO certificates (title, about_certificate, year, image_url, icon_name, display_order)
 VALUES
-    ('Introduction to Front-End Development', 'Mastered responsive page layouts, DOM manipulation, Git version control, and core web accessibility principles.', '2025', '/assets/portfolio-portrait.png', 'Award', 1),
-    ('Responsive Web Design', 'Comprehensive 300-hour certification covering modern CSS Grid, Flexbox, media queries, and semantic HTML5 structuring.', '2025', '/assets/portfolio-portrait.png', 'Braces', 2),
-    ('Foundations of User Experience (UX) Design', 'Covered design thinking, empathy mapping, user personas, low-to-high fidelity wireframing, and usability testing.', '2024', '/assets/portfolio-portrait.png', 'Sparkles', 3)
+    ('Introduction to Front-End Development', 'Mastered responsive page layouts, DOM manipulation, Git version control, and core web accessibility principles.', '2025', NULL, 'Award', 1),
+    ('Responsive Web Design', 'Comprehensive 300-hour certification covering modern CSS Grid, Flexbox, media queries, and semantic HTML5 structuring.', '2025', NULL, 'Braces', 2),
+    ('Foundations of User Experience (UX) Design', 'Covered design thinking, empathy mapping, user personas, low-to-high fidelity wireframing, and usability testing.', '2024', NULL, 'Sparkles', 3)
 ON CONFLICT DO NOTHING;
 
 INSERT INTO experiences (title, organization, period, description, display_order)

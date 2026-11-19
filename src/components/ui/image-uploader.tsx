@@ -154,7 +154,7 @@ export function ImageUploader({
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            placeholder="https://res.cloudinary.com/... or /assets/portfolio-portrait.png"
+            placeholder="https://res.cloudinary.com/... or image URL"
             className="w-full px-3 py-2 text-xs bg-background border border-border rounded-md focus:border-primary focus:outline-none transition-colors"
           />
         </div>
