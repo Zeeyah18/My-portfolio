@@ -115,9 +115,16 @@ export default function AdminResumePage() {
               <FileText size={18} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-foreground">
-                {resume ? resume.filename : "No resume uploaded"}
-              </p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-sm font-semibold text-foreground">
+                  {resume ? resume.filename : "No resume uploaded"}
+                </p>
+                {resume?.cloudinaryUrl && (
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 border border-blue-500/20">
+                    Cloudinary CDN
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 {resume
                   ? `Last updated ${new Date(resume.updatedAt).toLocaleString()}`

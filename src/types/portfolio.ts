@@ -71,6 +71,7 @@ export interface ResumeMeta {
   filename: string;
   updatedAt: string;
   url: string;
+  cloudinaryUrl?: string;
 }
 
 export interface SiteSettings {

@@ -872,8 +872,12 @@ export async function updateSiteSettings(data: Partial<SiteSettings>): Promise<b
 // ==========================================
 export async function getResumeMeta(): Promise<ResumeMeta | null> {
     try {
-        const res = await query<{ filename: string; updated_at: string }>(
-            "SELECT filename, updated_at FROM resume WHERE id = 1 LIMIT 1",
+        const res = await query<{
+            filename: string;
+            cloudinary_url?: string;
+            updated_at: string;
+        }>(
+            "SELECT filename, cloudinary_url, updated_at FROM resume WHERE id = 1 LIMIT 1",
         );
         if (!res || res.rows.length === 0) return null;
         const row = res.rows[0]!;
@@ -881,7 +885,8 @@ export async function getResumeMeta(): Promise<ResumeMeta | null> {
         return {
             filename: row.filename,
             updatedAt,
-            url: `/api/resume?v=${encodeURIComponent(updatedAt)}`,
+            url: row.cloudinary_url || `/api/resume?v=${encodeURIComponent(updatedAt)}`,
+            cloudinaryUrl: row.cloudinary_url,
         };
     } catch (error) {
         console.error("Error loading resume metadata:", error);
@@ -902,33 +907,55 @@ function resumeBytes(value: unknown): Uint8Array {
 export async function getResumeFile(): Promise<{
     filename: string;
     contentType: string;
-    bytes: Uint8Array;
+    bytes?: Uint8Array;
+    cloudinaryUrl?: string;
+    cloudinaryPublicId?: string;
 } | null> {
     const res = await query<{
         filename: string;
         content_type: string;
         file_data: unknown;
-    }>("SELECT filename, content_type, file_data FROM resume WHERE id = 1 LIMIT 1");
+        cloudinary_url?: string;
+        cloudinary_public_id?: string;
+    }>("SELECT filename, content_type, file_data, cloudinary_url, cloudinary_public_id FROM resume WHERE id = 1 LIMIT 1");
     if (!res || res.rows.length === 0) return null;
     const row = res.rows[0]!;
     return {
         filename: row.filename || "resume.pdf",
         contentType: row.content_type || "application/pdf",
-        bytes: resumeBytes(row.file_data),
+        bytes: row.file_data ? resumeBytes(row.file_data) : undefined,
+        cloudinaryUrl: row.cloudinary_url,
+        cloudinaryPublicId: row.cloudinary_public_id,
     };
 }
 
-export async function saveResume(filename: string, bytes: Buffer): Promise<ResumeMeta> {
-    const res = await query<{ filename: string; updated_at: string }>(
-        `INSERT INTO resume (id, filename, content_type, file_data, updated_at)
-         VALUES (1, $1, 'application/pdf', $2, NOW())
+export async function saveResume({
+    filename,
+    bytes,
+    cloudinaryUrl,
+    cloudinaryPublicId,
+}: {
+    filename: string;
+    bytes?: Buffer | null;
+    cloudinaryUrl?: string | null;
+    cloudinaryPublicId?: string | null;
+}): Promise<ResumeMeta> {
+    const res = await query<{
+        filename: string;
+        cloudinary_url?: string;
+        updated_at: string;
+    }>(
+        `INSERT INTO resume (id, filename, content_type, file_data, cloudinary_url, cloudinary_public_id, updated_at)
+         VALUES (1, $1, 'application/pdf', $2, $3, $4, NOW())
          ON CONFLICT (id) DO UPDATE SET
             filename = EXCLUDED.filename,
             content_type = EXCLUDED.content_type,
-            file_data = EXCLUDED.file_data,
+            file_data = COALESCE(EXCLUDED.file_data, resume.file_data),
+            cloudinary_url = EXCLUDED.cloudinary_url,
+            cloudinary_public_id = EXCLUDED.cloudinary_public_id,
             updated_at = NOW()
-         RETURNING filename, updated_at`,
-        [filename, bytes],
+         RETURNING filename, cloudinary_url, updated_at`,
+        [filename, bytes ?? null, cloudinaryUrl ?? null, cloudinaryPublicId ?? null],
     );
     if (!res || res.rows.length === 0) {
         throw new Error("Could not save the resume. Check that the database is connected.");
@@ -938,13 +965,18 @@ export async function saveResume(filename: string, bytes: Buffer): Promise<Resum
     return {
         filename: row.filename,
         updatedAt,
-        url: `/api/resume?v=${encodeURIComponent(updatedAt)}`,
+        url: row.cloudinary_url || `/api/resume?v=${encodeURIComponent(updatedAt)}`,
+        cloudinaryUrl: row.cloudinary_url,
     };
 }
 
-export async function deleteResume(): Promise<boolean> {
+export async function deleteResume(): Promise<{ success: boolean; cloudinaryPublicId?: string }> {
+    const existing = await query<{ cloudinary_public_id?: string }>(
+        "SELECT cloudinary_public_id FROM resume WHERE id = 1 LIMIT 1",
+    );
+    const pubId = existing?.rows[0]?.cloudinary_public_id;
     const res = await query("DELETE FROM resume WHERE id = 1");
-    return !!res;
+    return { success: !!res, cloudinaryPublicId: pubId };
 }
 
 // ==========================================

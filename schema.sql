@@ -134,6 +134,19 @@ CREATE TABLE IF NOT EXISTS site_settings (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- -----------------------------------------------------------------------------
+-- 10. RESUME
+-- -----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS resume (
+    id INT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+    filename TEXT NOT NULL,
+    content_type TEXT NOT NULL DEFAULT 'application/pdf',
+    file_data BYTEA,
+    cloudinary_url TEXT,
+    cloudinary_public_id TEXT,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- =============================================================================
 -- SEED DATA
 -- =============================================================================

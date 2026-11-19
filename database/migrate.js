@@ -65,16 +65,22 @@ async function migrate() {
     `);
     console.log("✓ site_settings table created and seeded.");
 
-    // 4. Resume PDF stored in the database so the admin can replace it
+    // 4. Resume PDF stored in the database or Cloudinary
     await pool.query(`
       CREATE TABLE IF NOT EXISTS resume (
         id INT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
         filename TEXT NOT NULL,
         content_type TEXT NOT NULL DEFAULT 'application/pdf',
-        file_data BYTEA NOT NULL,
+        file_data BYTEA,
+        cloudinary_url TEXT,
+        cloudinary_public_id TEXT,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+      ALTER TABLE resume ADD COLUMN IF NOT EXISTS cloudinary_url TEXT;
+      ALTER TABLE resume ADD COLUMN IF NOT EXISTS cloudinary_public_id TEXT;
+      ALTER TABLE resume ALTER COLUMN file_data DROP NOT NULL;
     `);
+    console.log("✓ resume table created and migrated for Cloudinary support.");
     console.log("✓ resume table ready.");
 
     console.log("All database migrations completed successfully!");

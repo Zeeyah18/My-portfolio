@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
 import { deleteResume, getResumeFile, getResumeMeta, saveResume } from "@/lib/portfolio-service";
+import { deleteFromCloudinary, isCloudinaryConfigured, uploadFileToCloudinary } from "@/lib/cloudinary";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,14 @@ export async function GET(request: NextRequest) {
     const file = await getResumeFile();
     if (!file) {
       return NextResponse.json({ error: "No resume has been uploaded yet." }, { status: 404 });
+    }
+
+    if (file.cloudinaryUrl) {
+      return NextResponse.redirect(file.cloudinaryUrl, 307);
+    }
+
+    if (!file.bytes) {
+      return NextResponse.json({ error: "Resume file content is unavailable." }, { status: 404 });
     }
 
     return new NextResponse(file.bytes as unknown as BodyInit, {
@@ -62,7 +71,28 @@ export async function POST(request: NextRequest) {
     }
 
     const bytes = Buffer.from(await file.arrayBuffer());
-    const resume = await saveResume(safeFilename(file.name), bytes);
+    const filename = safeFilename(file.name);
+
+    let cloudinaryUrl: string | null = null;
+    let cloudinaryPublicId: string | null = null;
+
+    if (isCloudinaryConfigured()) {
+      try {
+        const uploadResult = await uploadFileToCloudinary(bytes, filename, "portfolio/resume");
+        cloudinaryUrl = uploadResult.secure_url;
+        cloudinaryPublicId = uploadResult.public_id;
+      } catch (cloudErr) {
+        console.warn("Cloudinary upload failed, storing in database fallback:", cloudErr);
+      }
+    }
+
+    const resume = await saveResume({
+      filename,
+      bytes,
+      cloudinaryUrl,
+      cloudinaryPublicId,
+    });
+
     return NextResponse.json({ success: true, resume });
   } catch (error) {
     console.error("Error in POST /api/resume:", error);
@@ -78,7 +108,11 @@ export async function DELETE() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await deleteResume();
+    const result = await deleteResume();
+    if (result.cloudinaryPublicId) {
+      await deleteFromCloudinary(result.cloudinaryPublicId, "raw");
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error in DELETE /api/resume:", error);
